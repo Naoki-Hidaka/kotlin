@@ -18,7 +18,7 @@ import java.io.File
 object TestsJsonMapGenerator {
     const val LINKED_TESTS_PATH = "linked"
     const val TESTS_MAP_FILENAME = "testsMap.json"
-    const val GENERAL_TESTS_MAP_FILENAME = "generalTestsMap.json"
+    const val SECTIONS_TESTS_MAP_FILENAME = "sectionsMap.json"
 
     private inline fun <reified T : JsonElement> JsonObject.getOrCreate(key: String): T {
         if (!has(key)) {
@@ -123,7 +123,7 @@ object TestsJsonMapGenerator {
             val testMapFolder = "${GeneralConfiguration.SPEC_TESTDATA_PATH}/${testArea.testDataPath}"
             File(testMapFolder).mkdirs()
             val text = gson.toJson(json)
-            val generalSpecMapFile = File("$testMapFolder/gentest.json")
+            val generalSpecMapFile = File("$testMapFolder/$SECTIONS_TESTS_MAP_FILENAME")
             generalSpecMapFile.createNewFile()
             generalSpecMapFile.appendText(text)
 
@@ -166,30 +166,30 @@ object TestsJsonMapGenerator {
 
         val testArea = TestArea.getByPath(generalTestMapJsonContainer.areaPath) ?: return
 
-        val resJsonObject = mapOfTestsMaps[testArea] ?: JsonObject()
-        if (!resJsonObject.has(generalTestMapJsonContainer.areaPath)) {
+        val testAreaSectionsMap = mapOfTestsMaps[testArea] ?: JsonObject()
+        if (!testAreaSectionsMap.has(generalTestMapJsonContainer.first)) {
             val jsArr = JsonArray()
             jsArr.add(generalTestMapJsonContainer.sectionPath)
-            resJsonObject.add(generalTestMapJsonContainer.areaPath, jsArr)
+            testAreaSectionsMap.add(generalTestMapJsonContainer.first, jsArr)
 
             println("foooo" + "**" + generalTestMapJsonContainer.sectionPath)
 
         } else {
-            val jsArr = resJsonObject.get(generalTestMapJsonContainer.areaPath) as? JsonArray ?: throw Exception("json element doesn't exist")
+            val jsArr = testAreaSectionsMap.get(generalTestMapJsonContainer.first) as? JsonArray ?: throw Exception("json element doesn't exist")
             jsArr.add(generalTestMapJsonContainer.sectionPath)
-            resJsonObject.remove(generalTestMapJsonContainer.areaPath) //todo ??
-            resJsonObject.add(generalTestMapJsonContainer.areaPath, jsArr)
+            testAreaSectionsMap.remove(generalTestMapJsonContainer.areaPath) //todo ??
+            testAreaSectionsMap.add(generalTestMapJsonContainer.first, jsArr)
             println("hehehoooo ==" + generalTestMapJsonContainer.areaPath + "**" + generalTestMapJsonContainer.sectionPath)
 
         }
 
-        mapOfTestsMaps[testArea] = resJsonObject
+        mapOfTestsMaps[testArea] = testAreaSectionsMap
     }
 
     class GeneralTestMapJsonContainer(pathList: List<String>) {
         val areaPath: String
         val sectionPath: String
-        val first : String
+        val first: String
 
         init {
             if (pathList.first() == "psi") {
