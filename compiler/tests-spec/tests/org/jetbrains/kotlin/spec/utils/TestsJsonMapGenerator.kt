@@ -159,34 +159,35 @@ object TestsJsonMapGenerator {
 
     fun buildMapFromList(testsPath: String, mapOfTestsMaps: MutableMap<TestArea, JsonObject>) {
         val pathList = testsPath.split("/")
-        val generalTestMapJsonContainer = GeneralTestMapJsonContainer(pathList)
-
-
-        var tmp = JsonObject()
+        val generalTestMapJsonContainer = GeneralTestSectionsJsonContainer(pathList)
 
         val testArea = TestArea.getByPath(generalTestMapJsonContainer.areaPath) ?: return
 
         val testAreaSectionsMap = mapOfTestsMaps[testArea] ?: JsonObject()
-        if (!testAreaSectionsMap.has(generalTestMapJsonContainer.first)) {
-            val jsArr = JsonArray()
-            jsArr.add(generalTestMapJsonContainer.sectionPath)
-            testAreaSectionsMap.add(generalTestMapJsonContainer.first, jsArr)
-
-            println("foooo" + "**" + generalTestMapJsonContainer.sectionPath)
-
-        } else {
-            val jsArr = testAreaSectionsMap.get(generalTestMapJsonContainer.first) as? JsonArray ?: throw Exception("json element doesn't exist")
-            jsArr.add(generalTestMapJsonContainer.sectionPath)
-            testAreaSectionsMap.remove(generalTestMapJsonContainer.areaPath) //todo ??
-            testAreaSectionsMap.add(generalTestMapJsonContainer.first, jsArr)
-            println("hehehoooo ==" + generalTestMapJsonContainer.areaPath + "**" + generalTestMapJsonContainer.sectionPath)
-
-        }
+        addPathToTestAreaSectionsMap(testAreaSectionsMap, generalTestMapJsonContainer)
 
         mapOfTestsMaps[testArea] = testAreaSectionsMap
     }
 
-    class GeneralTestMapJsonContainer(pathList: List<String>) {
+    fun addPathToTestAreaSectionsMap(testAreaSectionsMap: JsonObject, generalTestSectionsJsonContainer: GeneralTestSectionsJsonContainer){
+        if (!testAreaSectionsMap.has(generalTestSectionsJsonContainer.first)) {
+            val jsArr = JsonArray()
+            jsArr.add(generalTestSectionsJsonContainer.sectionPath)
+            testAreaSectionsMap.add(generalTestSectionsJsonContainer.first, jsArr)
+
+            println("foooo" + "**" + generalTestSectionsJsonContainer.sectionPath)
+
+        } else {
+            val jsArr = testAreaSectionsMap.get(generalTestSectionsJsonContainer.first) as? JsonArray ?: throw Exception("json element doesn't exist")
+            jsArr.add(generalTestSectionsJsonContainer.sectionPath)
+            testAreaSectionsMap.remove(generalTestSectionsJsonContainer.areaPath) //todo ??
+            testAreaSectionsMap.add(generalTestSectionsJsonContainer.first, jsArr)
+            println("hehehoooo ==" + generalTestSectionsJsonContainer.areaPath + "**" + generalTestSectionsJsonContainer.sectionPath)
+
+        }
+    }
+
+    class GeneralTestSectionsJsonContainer(pathList: List<String>) {
         val areaPath: String
         val sectionPath: String
         val first: String
