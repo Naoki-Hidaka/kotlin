@@ -108,7 +108,7 @@ object TestsJsonMapGenerator {
         }
 
         val gson = GsonBuilder().setPrettyPrinting().create()
-        var resJsonObject = JsonObject()
+        val resJsonObject: MutableMap<TestArea, JsonObject> = mutableMapOf()
 
         testsMap.keySet().forEach { testPath ->
             val testMapFolder = "${GeneralConfiguration.SPEC_TESTDATA_PATH}/$testPath"
@@ -119,11 +119,18 @@ object TestsJsonMapGenerator {
             buildMapFromList(testPath, resJsonObject)
         }
         //todo temp
-        val testMapFolder = "${GeneralConfiguration.SPEC_TESTDATA_PATH}"
-        File(testMapFolder).mkdirs()
+        resJsonObject.forEach { (testArea, json) ->
+            val testMapFolder = "${GeneralConfiguration.SPEC_TESTDATA_PATH}/${testArea.testDataPath}"
+            File(testMapFolder).mkdirs()
+            val text = gson.toJson(json)
+            val generalSpecMapFile = File("$testMapFolder/gentest.json")
+            generalSpecMapFile.createNewFile()
+            generalSpecMapFile.appendText(text)
 
-        val text = gson.toJson(resJsonObject)
-        File("$testMapFolder/gentest.json").appendText(text)
+        }
+
+//        generalSpecMapFile.deleteOnExit()
+//        generalSpecMapFile.createNewFile()
 
 
 //        println("olololo+ "+ testsMap.keySet().first())
@@ -150,40 +157,62 @@ object TestsJsonMapGenerator {
 
     }
 
-    fun buildMapFromList(testsPath: String, resJsonObject : JsonObject) {
+    fun buildMapFromList(testsPath: String, mapOfTestsMaps: MutableMap<TestArea, JsonObject>) {
         val pathList = testsPath.split("/")
-        val (arePath, sectionPath) = if (pathList.first() == "psi") {
-            Pair("psi", pathList.subList(2, pathList.size).joinToString("/"))
-        } else if (pathList.first() == "diagnostics") {
-            Pair("diagnostics", pathList.subList(2, pathList.size).joinToString("/"))
-        } else if (pathList.first() == "codegen") {
-            if (pathList[1] == "box") {
-                Pair("codegen/box", pathList.subList(3, pathList.size).joinToString("/"))
-            } else {
-                throw IllegalArgumentException("Codegen path ${pathList.first()} doesn't match spec path pattern!!")
-            }
-        } else {
-            throw IllegalArgumentException("Path ${pathList.first()} doesn't match spec path pattern2§13")
-        }
+        val generalTestMapJsonContainer = GeneralTestMapJsonContainer(pathList)
 
 
         var tmp = JsonObject()
 
+        val testArea = TestArea.getByPath(generalTestMapJsonContainer.areaPath) ?: return
 
-        if (!resJsonObject.has(arePath)) {
+        val resJsonObject = mapOfTestsMaps[testArea] ?: JsonObject()
+        if (!resJsonObject.has(generalTestMapJsonContainer.areaPath)) {
             val jsArr = JsonArray()
-            jsArr.add(sectionPath)
-            resJsonObject.add(arePath, jsArr)
+            jsArr.add(generalTestMapJsonContainer.sectionPath)
+            resJsonObject.add(generalTestMapJsonContainer.areaPath, jsArr)
 
-            println("foooo"+ "**" + sectionPath)
+            println("foooo" + "**" + generalTestMapJsonContainer.sectionPath)
 
         } else {
-            val jsArr = resJsonObject.get(arePath) as? JsonArray ?: throw Exception("json element doesn't exist")
-            jsArr.add(sectionPath)
-            resJsonObject.remove(arePath) //todo ??
-            resJsonObject.add(arePath, jsArr)
-            println("hehehoooo =="+ arePath + "**" + sectionPath)
+            val jsArr = resJsonObject.get(generalTestMapJsonContainer.areaPath) as? JsonArray ?: throw Exception("json element doesn't exist")
+            jsArr.add(generalTestMapJsonContainer.sectionPath)
+            resJsonObject.remove(generalTestMapJsonContainer.areaPath) //todo ??
+            resJsonObject.add(generalTestMapJsonContainer.areaPath, jsArr)
+            println("hehehoooo ==" + generalTestMapJsonContainer.areaPath + "**" + generalTestMapJsonContainer.sectionPath)
 
         }
+
+        mapOfTestsMaps[testArea] = resJsonObject
     }
+
+    class GeneralTestMapJsonContainer(pathList: List<String>) {
+        val areaPath: String
+        val sectionPath: String
+        val first : String
+
+        init {
+            if (pathList.first() == "psi") {
+                areaPath = "psi"
+                sectionPath = pathList.subList(2, pathList.size).joinToString("/")
+                first = pathList[1]
+            } else if (pathList.first() == "diagnostics") {
+                areaPath = "diagnostics"
+                sectionPath = pathList.subList(2, pathList.size).joinToString("/")
+                first = pathList[1]
+            } else if (pathList.first() == "codegen") {
+                if (pathList[1] == "box") {
+                    areaPath = "codegen/box"
+                    sectionPath = pathList.subList(3, pathList.size).joinToString("/")
+                    first = pathList[2]
+                } else {
+                    throw IllegalArgumentException("Codegen path ${pathList.first()} doesn't match spec path pattern!!")
+                }
+            } else {
+                throw IllegalArgumentException("Path ${pathList.first()} doesn't match spec path pattern2§13")
+            }
+        }
+    }
+
 }
+
