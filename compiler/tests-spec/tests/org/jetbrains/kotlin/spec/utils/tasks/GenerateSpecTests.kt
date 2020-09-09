@@ -73,6 +73,6 @@ fun generateTests() {
 
 fun main() {
     TestsJsonMapGenerator.buildTestsMapPerSection()
-    SectionsJsonMapGenerator.writeSectionsMap()
+    SectionsJsonMapGenerator.writeSectionsMapJsons()
     generateTests()
 }

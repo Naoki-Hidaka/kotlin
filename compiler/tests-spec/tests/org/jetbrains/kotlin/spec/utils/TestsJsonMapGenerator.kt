@@ -114,7 +114,7 @@ object TestsJsonMapGenerator {
             File(testMapFolder).mkdirs()
             File("$testMapFolder/${TESTS_MAP_FILENAME}").writeText(gson.toJson(testsMap.get(testPath)))
 
-            SectionsJsonMapGenerator.buildSectionsMap(testPath, SectionsJsonMapGenerator.sectionsMapsByTestArea)
+            SectionsJsonMapGenerator.buildSectionsMap(testPath)
         }
 
     }

@@ -10,35 +10,33 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import org.jetbrains.kotlin.spec.utils.GeneralConfiguration.LINKED_TESTS_PATH
 import org.jetbrains.kotlin.spec.utils.GeneralConfiguration.SECTIONS_TESTS_MAP_FILENAME
+import org.jetbrains.kotlin.spec.utils.GeneralConfiguration.SPEC_TESTDATA_PATH
 import java.io.File
 
 object SectionsJsonMapGenerator {
 
     val sectionsMapsByTestArea: MutableMap<TestArea, JsonObject> = mutableMapOf()
 
-    fun writeSectionsMap() {
+    fun writeSectionsMapJsons() {
         val gson = GsonBuilder().setPrettyPrinting().create()
         sectionsMapsByTestArea.forEach { (testArea, json) ->
-            val testMapFolder = "${GeneralConfiguration.SPEC_TESTDATA_PATH}/${testArea.testDataPath}/${LINKED_TESTS_PATH}"
-            File(testMapFolder).mkdirs()
-            val sectionsMapFile = File("$testMapFolder/$SECTIONS_TESTS_MAP_FILENAME")
+            val sectionsMapFolder = "$SPEC_TESTDATA_PATH/${testArea.testDataPath}/$LINKED_TESTS_PATH"
+            File(sectionsMapFolder).mkdirs()
+            val sectionsMapFile = File("$sectionsMapFolder/$SECTIONS_TESTS_MAP_FILENAME")
             sectionsMapFile.createNewFile()
             sectionsMapFile.writeText(gson.toJson(json))
         }
     }
 
-    fun buildSectionsMap(testsMapPath: String, mapOfTestsMaps: MutableMap<TestArea, JsonObject>) {
-        val generalTestMapJsonContainer = SectionInfo.parsePath(testsMapPath)
-        val testArea = generalTestMapJsonContainer.testArea
-        val testAreaSectionsMap = mapOfTestsMaps[testArea] ?: JsonObject()
-        addPathToTestAreaSectionsMap(testAreaSectionsMap, generalTestMapJsonContainer)
-        mapOfTestsMaps[testArea] = testAreaSectionsMap
+    fun buildSectionsMap(testsMapPath: String) {
+        val sectionInfo = SectionInfo.parsePath(testsMapPath)
+        val testArea = sectionInfo.testArea
+        val testAreaSectionsMap = sectionsMapsByTestArea[testArea] ?: JsonObject()
+        addPathToTestAreaSectionsMap(testAreaSectionsMap, sectionInfo)
+        sectionsMapsByTestArea[testArea] = testAreaSectionsMap
     }
 
-    private fun addPathToTestAreaSectionsMap(
-        testAreaSectionsMap: JsonObject,
-        sectionInfo: SectionInfo
-    ) {
+    private fun addPathToTestAreaSectionsMap(testAreaSectionsMap: JsonObject, sectionInfo: SectionInfo) {
         if (!testAreaSectionsMap.has(sectionInfo.mainSection)) {
             val jsArr = JsonArray()
             if (sectionInfo.subsectionsPath.isNotEmpty())
