@@ -129,63 +129,57 @@ object TestsJsonMapGenerator {
         }
     }
 
-    fun buildMapFromList(testsPath: String, mapOfTestsMaps: MutableMap<TestArea, JsonObject>) {
-        val pathList = testsPath.split("/")
-        val generalTestMapJsonContainer = GeneralTestSectionsJsonContainer(pathList)
-
-        val testArea = TestArea.getByPath(generalTestMapJsonContainer.areaPath) ?: return
-
+    private fun buildMapFromList(testsPath: String, mapOfTestsMaps: MutableMap<TestArea, JsonObject>) {
+        val generalTestMapJsonContainer = GeneralTestSectionsJsonContainer(testsPath)
+        val testArea = generalTestMapJsonContainer.testArea
         val testAreaSectionsMap = mapOfTestsMaps[testArea] ?: JsonObject()
         addPathToTestAreaSectionsMap(testAreaSectionsMap, generalTestMapJsonContainer)
-
         mapOfTestsMaps[testArea] = testAreaSectionsMap
     }
 
-    fun addPathToTestAreaSectionsMap(testAreaSectionsMap: JsonObject, generalTestSectionsJsonContainer: GeneralTestSectionsJsonContainer) {
+    private fun addPathToTestAreaSectionsMap(
+        testAreaSectionsMap: JsonObject,
+        generalTestSectionsJsonContainer: GeneralTestSectionsJsonContainer
+    ) {
         if (!testAreaSectionsMap.has(generalTestSectionsJsonContainer.mainSection)) {
             val jsArr = JsonArray()
-            if (generalTestSectionsJsonContainer.sectionPath.isNotEmpty())
-                jsArr.add(generalTestSectionsJsonContainer.sectionPath)
+            if (generalTestSectionsJsonContainer.subsectionsPath.isNotEmpty())
+                jsArr.add(generalTestSectionsJsonContainer.subsectionsPath)
             testAreaSectionsMap.add(generalTestSectionsJsonContainer.mainSection, jsArr)
         } else {
             val jsArr = testAreaSectionsMap.get(generalTestSectionsJsonContainer.mainSection) as? JsonArray
                 ?: throw Exception("json element doesn't exist")
-            jsArr.add(generalTestSectionsJsonContainer.sectionPath)
-            testAreaSectionsMap.remove(generalTestSectionsJsonContainer.areaPath) //todo ??
+            jsArr.add(generalTestSectionsJsonContainer.subsectionsPath)
             testAreaSectionsMap.add(generalTestSectionsJsonContainer.mainSection, jsArr)
         }
     }
 
-    class GeneralTestSectionsJsonContainer(pathList: List<String>) {
-        val areaPath: String
-        val sectionPath: String
+    private class GeneralTestSectionsJsonContainer(path: String) {
+        val testArea: TestArea
+        val subsectionsPath: String
         val mainSection: String
 
-        val subsectionsPath: List<String>
-
         init {
-            if (pathList.first() == "psi") {
-                areaPath = "psi"
-                sectionPath = pathList.subList(2 + 1, pathList.size).joinToString("/")
-                mainSection = pathList[1 + 1]
-                subsectionsPath = pathList.subList(2 + 1, pathList.size)
-            } else if (pathList.first() == "diagnostics") {
-                areaPath = "diagnostics"
-                sectionPath = pathList.subList(2 + 1, pathList.size).joinToString("/")
-                mainSection = pathList[1 + 1]
-                subsectionsPath = pathList.subList(2 + 1, pathList.size)
-            } else if (pathList.first() == "codegen") {
-                if (pathList[1] == "box") {
-                    areaPath = "codegen/box"
-                    sectionPath = pathList.subList(3 + 1, pathList.size).joinToString("/")
-                    mainSection = pathList[2 + 1]
-                    subsectionsPath = pathList.subList(3 + 1, pathList.size)
-                } else {
-                    throw IllegalArgumentException("Codegen path ${pathList.first()} doesn't match spec path pattern!!")
+            var tmpMainSection: String? = null
+            var tmpSubsectionPath: String? = null
+            var tmpTestArea: TestArea? = null
+            TestArea.values().forEach {
+                val testDataPath = it.testDataPath
+                if (path.startsWith(testDataPath)) {
+                    tmpTestArea = it
+                    val fullSectionsPathList = path.subSequence(testDataPath.length + 1, path.length).toString().split("/")
+                    if (fullSectionsPathList.first() != LINKED_TESTS_PATH)
+                        throw IllegalArgumentException("testsMap path doesn't contain linked directory")
+                    tmpMainSection = fullSectionsPathList[1]
+                    tmpSubsectionPath = fullSectionsPathList.subList(2, fullSectionsPathList.size).joinToString("/")
+                    return@forEach
                 }
-            } else {
-                throw IllegalArgumentException("Path ${pathList.first()} doesn't match spec path pattern2§13")
             }
+            if (tmpMainSection == null || tmpSubsectionPath == null || tmpTestArea == null)
+                throw IllegalArgumentException("testMap path could not be parsed")
+            mainSection = tmpMainSection as String
+            subsectionsPath = tmpSubsectionPath as String
+            testArea = tmpTestArea as TestArea
         }
     }
 

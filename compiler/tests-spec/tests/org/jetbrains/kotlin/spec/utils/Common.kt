@@ -51,14 +51,6 @@ enum class TestArea(val testDataPath: String) {
 
     companion object {
         val joinedValues = values().joinToString("|").withSpaces()
-
-        fun getByPath(testDataPath: String): TestArea? {
-            TestArea.values().forEach { testArea ->
-                if (testArea.testDataPath == testDataPath)
-                    return testArea
-            }
-            return null
-        }
     }
 }
 
