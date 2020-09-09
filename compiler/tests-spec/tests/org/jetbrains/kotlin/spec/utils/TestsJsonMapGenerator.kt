@@ -120,41 +120,13 @@ object TestsJsonMapGenerator {
         }
         //todo temp
         resJsonObject.forEach { (testArea, json) ->
-            val testMapFolder = "${GeneralConfiguration.SPEC_TESTDATA_PATH}/${testArea.testDataPath}"
+            val testMapFolder = "${GeneralConfiguration.SPEC_TESTDATA_PATH}/${testArea.testDataPath}/$LINKED_TESTS_PATH"
             File(testMapFolder).mkdirs()
             val text = gson.toJson(json)
             val generalSpecMapFile = File("$testMapFolder/$SECTIONS_TESTS_MAP_FILENAME")
             generalSpecMapFile.createNewFile()
             generalSpecMapFile.appendText(text)
-
         }
-
-//        generalSpecMapFile.deleteOnExit()
-//        generalSpecMapFile.createNewFile()
-
-
-//        println("olololo+ "+ testsMap.keySet().first())
-//        buildMapFromList(testsMap.keySet().first().split("/"))
-    }
-
-    fun buildGenegalTestMap(testPath: String) {
-        val gson = GsonBuilder().setPrettyPrinting().create()
-
-        val testMapFolder = "${GeneralConfiguration.SPEC_TESTDATA_PATH}"
-        File(testMapFolder).mkdirs()
-
-        val jsonElement = JsonObject()
-        val folderList = testPath.split("/").reversed().listIterator()
-        /* folderList.
-                 val x = JsonElement().apply { this.add }folderList.first()
-
-             .forEach{
-             jsonElement.add (propertyName, eclosedJsonEl)
-         }*/
-
-        val text = gson.toJson(jsonElement)
-        File("$testMapFolder").writeText(text)
-
     }
 
     fun buildMapFromList(testsPath: String, mapOfTestsMaps: MutableMap<TestArea, JsonObject>) {
@@ -169,43 +141,44 @@ object TestsJsonMapGenerator {
         mapOfTestsMaps[testArea] = testAreaSectionsMap
     }
 
-    fun addPathToTestAreaSectionsMap(testAreaSectionsMap: JsonObject, generalTestSectionsJsonContainer: GeneralTestSectionsJsonContainer){
-        if (!testAreaSectionsMap.has(generalTestSectionsJsonContainer.first)) {
+    fun addPathToTestAreaSectionsMap(testAreaSectionsMap: JsonObject, generalTestSectionsJsonContainer: GeneralTestSectionsJsonContainer) {
+        if (!testAreaSectionsMap.has(generalTestSectionsJsonContainer.mainSection)) {
             val jsArr = JsonArray()
             jsArr.add(generalTestSectionsJsonContainer.sectionPath)
-            testAreaSectionsMap.add(generalTestSectionsJsonContainer.first, jsArr)
-
-            println("foooo" + "**" + generalTestSectionsJsonContainer.sectionPath)
-
+            testAreaSectionsMap.add(generalTestSectionsJsonContainer.mainSection, jsArr)
         } else {
-            val jsArr = testAreaSectionsMap.get(generalTestSectionsJsonContainer.first) as? JsonArray ?: throw Exception("json element doesn't exist")
+            val jsArr = testAreaSectionsMap.get(generalTestSectionsJsonContainer.mainSection) as? JsonArray
+                ?: throw Exception("json element doesn't exist")
             jsArr.add(generalTestSectionsJsonContainer.sectionPath)
             testAreaSectionsMap.remove(generalTestSectionsJsonContainer.areaPath) //todo ??
-            testAreaSectionsMap.add(generalTestSectionsJsonContainer.first, jsArr)
-            println("hehehoooo ==" + generalTestSectionsJsonContainer.areaPath + "**" + generalTestSectionsJsonContainer.sectionPath)
-
+            testAreaSectionsMap.add(generalTestSectionsJsonContainer.mainSection, jsArr)
         }
     }
 
     class GeneralTestSectionsJsonContainer(pathList: List<String>) {
         val areaPath: String
         val sectionPath: String
-        val first: String
+        val mainSection: String
+
+        val subsectionsPath: List<String>
 
         init {
             if (pathList.first() == "psi") {
                 areaPath = "psi"
-                sectionPath = pathList.subList(2, pathList.size).joinToString("/")
-                first = pathList[1]
+                sectionPath = pathList.subList(2 + 1, pathList.size).joinToString("/")
+                mainSection = pathList[1 + 1]
+                subsectionsPath = pathList.subList(2 + 1, pathList.size)
             } else if (pathList.first() == "diagnostics") {
                 areaPath = "diagnostics"
-                sectionPath = pathList.subList(2, pathList.size).joinToString("/")
-                first = pathList[1]
+                sectionPath = pathList.subList(2 + 1, pathList.size).joinToString("/")
+                mainSection = pathList[1 + 1]
+                subsectionsPath = pathList.subList(2 + 1, pathList.size)
             } else if (pathList.first() == "codegen") {
                 if (pathList[1] == "box") {
                     areaPath = "codegen/box"
-                    sectionPath = pathList.subList(3, pathList.size).joinToString("/")
-                    first = pathList[2]
+                    sectionPath = pathList.subList(3 + 1, pathList.size).joinToString("/")
+                    mainSection = pathList[2 + 1]
+                    subsectionsPath = pathList.subList(3 + 1, pathList.size)
                 } else {
                     throw IllegalArgumentException("Codegen path ${pathList.first()} doesn't match spec path pattern!!")
                 }
