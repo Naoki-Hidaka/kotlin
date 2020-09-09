@@ -9,6 +9,8 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import org.jetbrains.kotlin.spec.utils.GeneralConfiguration.LINKED_TESTS_PATH
+import org.jetbrains.kotlin.spec.utils.GeneralConfiguration.TESTS_MAP_FILENAME
 import org.jetbrains.kotlin.spec.utils.models.LinkedSpecTest
 import org.jetbrains.kotlin.spec.utils.models.SpecPlace
 import org.jetbrains.kotlin.spec.utils.parsers.CommonParser
@@ -16,9 +18,6 @@ import org.jetbrains.kotlin.spec.utils.parsers.LinkedSpecTestPatterns
 import java.io.File
 
 object TestsJsonMapGenerator {
-    const val LINKED_TESTS_PATH = "linked"
-    const val TESTS_MAP_FILENAME = "testsMap.json"
-    const val SECTIONS_TESTS_MAP_FILENAME = "sectionsMap.json"
 
     private inline fun <reified T : JsonElement> JsonObject.getOrCreate(key: String): T {
         if (!has(key)) {
@@ -108,79 +107,16 @@ object TestsJsonMapGenerator {
         }
 
         val gson = GsonBuilder().setPrettyPrinting().create()
-        val resJsonObject: MutableMap<TestArea, JsonObject> = mutableMapOf()
 
         testsMap.keySet().forEach { testPath ->
             val testMapFolder = "${GeneralConfiguration.SPEC_TESTDATA_PATH}/$testPath"
 
             File(testMapFolder).mkdirs()
-            File("$testMapFolder/$TESTS_MAP_FILENAME").writeText(gson.toJson(testsMap.get(testPath)))
+            File("$testMapFolder/${TESTS_MAP_FILENAME}").writeText(gson.toJson(testsMap.get(testPath)))
 
-            buildMapFromList(testPath, resJsonObject)
+            SectionsJsonMapGenerator.buildSectionsMap(testPath, SectionsJsonMapGenerator.sectionsMapsByTestArea)
         }
-        //todo temp
-        resJsonObject.forEach { (testArea, json) ->
-            val testMapFolder = "${GeneralConfiguration.SPEC_TESTDATA_PATH}/${testArea.testDataPath}/$LINKED_TESTS_PATH"
-            File(testMapFolder).mkdirs()
-            val text = gson.toJson(json)
-            val generalSpecMapFile = File("$testMapFolder/$SECTIONS_TESTS_MAP_FILENAME")
-            generalSpecMapFile.createNewFile()
-            generalSpecMapFile.appendText(text)
-        }
-    }
 
-    private fun buildMapFromList(testsPath: String, mapOfTestsMaps: MutableMap<TestArea, JsonObject>) {
-        val generalTestMapJsonContainer = GeneralTestSectionsJsonContainer(testsPath)
-        val testArea = generalTestMapJsonContainer.testArea
-        val testAreaSectionsMap = mapOfTestsMaps[testArea] ?: JsonObject()
-        addPathToTestAreaSectionsMap(testAreaSectionsMap, generalTestMapJsonContainer)
-        mapOfTestsMaps[testArea] = testAreaSectionsMap
-    }
-
-    private fun addPathToTestAreaSectionsMap(
-        testAreaSectionsMap: JsonObject,
-        generalTestSectionsJsonContainer: GeneralTestSectionsJsonContainer
-    ) {
-        if (!testAreaSectionsMap.has(generalTestSectionsJsonContainer.mainSection)) {
-            val jsArr = JsonArray()
-            if (generalTestSectionsJsonContainer.subsectionsPath.isNotEmpty())
-                jsArr.add(generalTestSectionsJsonContainer.subsectionsPath)
-            testAreaSectionsMap.add(generalTestSectionsJsonContainer.mainSection, jsArr)
-        } else {
-            val jsArr = testAreaSectionsMap.get(generalTestSectionsJsonContainer.mainSection) as? JsonArray
-                ?: throw Exception("json element doesn't exist")
-            jsArr.add(generalTestSectionsJsonContainer.subsectionsPath)
-            testAreaSectionsMap.add(generalTestSectionsJsonContainer.mainSection, jsArr)
-        }
-    }
-
-    private class GeneralTestSectionsJsonContainer(path: String) {
-        val testArea: TestArea
-        val subsectionsPath: String
-        val mainSection: String
-
-        init {
-            var tmpMainSection: String? = null
-            var tmpSubsectionPath: String? = null
-            var tmpTestArea: TestArea? = null
-            TestArea.values().forEach {
-                val testDataPath = it.testDataPath
-                if (path.startsWith(testDataPath)) {
-                    tmpTestArea = it
-                    val fullSectionsPathList = path.subSequence(testDataPath.length + 1, path.length).toString().split("/")
-                    if (fullSectionsPathList.first() != LINKED_TESTS_PATH)
-                        throw IllegalArgumentException("testsMap path doesn't contain linked directory")
-                    tmpMainSection = fullSectionsPathList[1]
-                    tmpSubsectionPath = fullSectionsPathList.subList(2, fullSectionsPathList.size).joinToString("/")
-                    return@forEach
-                }
-            }
-            if (tmpMainSection == null || tmpSubsectionPath == null || tmpTestArea == null)
-                throw IllegalArgumentException("testMap path could not be parsed")
-            mainSection = tmpMainSection as String
-            subsectionsPath = tmpSubsectionPath as String
-            testArea = tmpTestArea as TestArea
-        }
     }
 
 }
