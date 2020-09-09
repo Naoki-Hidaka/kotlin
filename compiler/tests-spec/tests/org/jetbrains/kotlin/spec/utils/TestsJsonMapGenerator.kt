@@ -144,7 +144,8 @@ object TestsJsonMapGenerator {
     fun addPathToTestAreaSectionsMap(testAreaSectionsMap: JsonObject, generalTestSectionsJsonContainer: GeneralTestSectionsJsonContainer) {
         if (!testAreaSectionsMap.has(generalTestSectionsJsonContainer.mainSection)) {
             val jsArr = JsonArray()
-            jsArr.add(generalTestSectionsJsonContainer.sectionPath)
+            if (generalTestSectionsJsonContainer.sectionPath.isNotEmpty())
+                jsArr.add(generalTestSectionsJsonContainer.sectionPath)
             testAreaSectionsMap.add(generalTestSectionsJsonContainer.mainSection, jsArr)
         } else {
             val jsArr = testAreaSectionsMap.get(generalTestSectionsJsonContainer.mainSection) as? JsonArray

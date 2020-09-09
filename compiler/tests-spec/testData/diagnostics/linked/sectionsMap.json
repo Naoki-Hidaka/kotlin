@@ -95,9 +95,7 @@
     "call-and-property-access-expressions/navigation-operators",
     "function-literals/lambda-literals"
   ],
-  "overloadable-operators": [
-    ""
-  ],
+  "overloadable-operators": [],
   "built-in-types-and-their-semantics": [
     "built-in-integer-types-1/integer-type-widening"
   ],
