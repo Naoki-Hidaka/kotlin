@@ -39,8 +39,7 @@ object SectionsJsonMapGenerator {
     private fun addPathToTestAreaSectionsMap(testAreaSectionsMap: JsonObject, sectionInfo: SectionInfo) {
         if (!testAreaSectionsMap.has(sectionInfo.mainSection)) {
             val jsArr = JsonArray()
-            if (sectionInfo.subsectionsPath.isNotEmpty())
-                jsArr.add(sectionInfo.subsectionsPath)
+            jsArr.add(sectionInfo.subsectionsPath)
             testAreaSectionsMap.add(sectionInfo.mainSection, jsArr)
         } else {
             val jsArr = testAreaSectionsMap.get(sectionInfo.mainSection) as? JsonArray

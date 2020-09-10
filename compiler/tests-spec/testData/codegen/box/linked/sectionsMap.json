@@ -48,7 +48,9 @@
     "prefix-expressions/logical-not-expression",
     "prefix-expressions/unary-plus-expression"
   ],
-  "overloadable-operators": [],
+  "overloadable-operators": [
+    ""
+  ],
   "exceptions": [
     "catching-exceptions"
   ],
