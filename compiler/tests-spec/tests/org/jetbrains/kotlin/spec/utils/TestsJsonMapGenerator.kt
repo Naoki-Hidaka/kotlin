@@ -112,12 +112,8 @@ object TestsJsonMapGenerator {
             val testMapFolder = "${GeneralConfiguration.SPEC_TESTDATA_PATH}/$testPath"
 
             File(testMapFolder).mkdirs()
-            File("$testMapFolder/${TESTS_MAP_FILENAME}").writeText(gson.toJson(testsMap.get(testPath)))
-
+            File("$testMapFolder/$TESTS_MAP_FILENAME").writeText(gson.toJson(testsMap.get(testPath)))
             SectionsJsonMapGenerator.buildSectionsMap(testPath)
         }
-
     }
-
 }
-

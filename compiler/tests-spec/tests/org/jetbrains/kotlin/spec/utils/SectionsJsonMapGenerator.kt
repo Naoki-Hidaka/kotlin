@@ -75,6 +75,4 @@ object SectionsJsonMapGenerator {
             }
         }
     }
-
-
 }
