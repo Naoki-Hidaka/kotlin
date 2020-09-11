@@ -95,13 +95,14 @@
     "call-and-property-access-expressions/navigation-operators",
     "function-literals/lambda-literals"
   ],
-  "overloadable-operators": [],
+  "overloadable-operators": [
+    ""
+  ],
   "built-in-types-and-their-semantics": [
     "built-in-integer-types-1/integer-type-widening"
   ],
   "control--and-data-flow-analysis": [
     "control-flow-graph/expressions-1/conditional-expressions",
-    "control-flow-graph/expressions-1/conditional-expressionsNew",
     "performing-analysis-on-the-control-flow-graph/variable-initialization-analysis"
   ],
   "annotations": [
