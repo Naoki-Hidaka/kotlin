@@ -337,14 +337,18 @@ class PerformanceProjectsTest : AbstractPerformanceProjectsTest() {
                 profilerConfig.enabled = true
             }
 
+            val metricChildren = mutableListOf<Metric>()
+
             extraStats.printWarmUpTimings(
                 "annotator",
-                extraTimingsNs.take(warmUpIterations).toTypedArray()
+                extraTimingsNs.take(warmUpIterations).toTypedArray(),
+                metricChildren
             )
 
-            extraStats.appendTimings(
+            extraStats.processTimings(
                 "annotator",
-                extraTimingsNs.drop(warmUpIterations).toTypedArray()
+                extraTimingsNs.drop(warmUpIterations).toTypedArray(),
+                metricChildren
             )
         }
     }
