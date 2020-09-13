@@ -346,7 +346,11 @@ class Stats(
         if (perfTestRawDataMs.isNotEmpty()) {
             val geomMeanMs = geomMean(perfTestRawDataMs.toList()).toLong()
 
-            metrics.add(Metric("geomMean", geomMeanMs))
+
+            with(Metric("geomMean", geomMeanMs)) {
+                writeTeamCityStats(name)
+                metrics.add(this)
+            }
         }
         metrics.writeJson(name)
         metrics.writeCSV(name)
